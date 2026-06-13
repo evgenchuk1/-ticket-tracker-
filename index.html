@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a3a5c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="מעקב תקלות">
+    <title>מעקב תקלות וקריאות</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #1a3a5c;
+            --primary-mid: #2563a8;
+            --bg: #f0f3f8;
+            --surface: #ffffff;
+            --text: #12263a;
+            --muted: #6b7280;
+            --radius: 14px;
+            --shadow: 0 2px 10px rgba(0,0,0,0.14);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 110px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* HEADER */
+        .app-header {
+            background: var(--primary);
+            color: white;
+            padding: 16px 16px 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.35);
+        }
+        .header-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .app-title  { font-size: 1.45rem; font-weight: 800; }
+        .sync-dot {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: #9ca3af;
+            transition: background 0.4s;
+            flex-shrink: 0;
+        }
+        .sync-dot.live { background: #4ade80; box-shadow: 0 0 7px #4ade80; }
+        .app-stats { font-size: 1rem; opacity: 0.82; margin-top: 4px; }
+        .stat-urgent { color: #fca5a5; font-weight: 700; }
+
+        /* Header action row */
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .btn-stats {
+            flex: 1;
+            padding: 8px 0;
+            border-radius: 999px;
+            border: 2px solid rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.15);
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.18s;
+        }
+        .btn-stats:active { opacity: 0.6; }
+
+        /* STATUS TABS */
+        .status-tabs {
+            background: var(--surface);
+            display: flex;
+            border-bottom: 2px solid #e5e7eb;
+            position: sticky;
+            top: 104px;
+            z-index: 99;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 13px 0;
+            border: none;
+            background: transparent;
+            font-size: 1.08rem;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            font-family: inherit;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.18s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* TICKET LIST */
+        .ticket-list {
+            padding: 14px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Section divider */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 2px;
+            margin-top: 4px;
+        }
+        .section-divider span {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+        .section-divider::before, .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #d1d5db;
+        }
+
+        /* Ticket card */
+        .ticket-card {
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.12s;
+            user-select: none;
+            position: relative;
+        }
+        .ticket-card:active { transform: scale(0.965); }
+
+        /* Days badge */
+        .card-badge { flex-shrink: 0; width: 60px; text-align: center; }
+        .badge-number { font-size: 2.4rem; font-weight: 800; line-height: 1; }
+        .badge-unit   { font-size: 0.82rem; font-weight: 600; margin-top: 2px; opacity: 0.88; }
+
+        .card-sep { width: 1px; height: 52px; background: rgba(255,255,255,0.28); flex-shrink: 0; }
+
+        /* Ticket info */
+        .card-info { flex: 1; min-width: 0; }
+        .card-desc  { font-size: 1.22rem; font-weight: 700; }
+        .card-num   { font-size: 0.95rem; opacity: 0.82; margin-top: 3px; }
+        .card-date  { font-size: 0.9rem;  opacity: 0.7;  margin-top: 2px; }
+        .card-notes { font-size: 0.88rem; opacity: 0.75; margin-top: 3px; font-style: italic;
+                      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-cat-badge {
+            display: inline-block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.22);
+            margin-top: 4px;
+        }
+
+        /* Completed overlay */
+        .ticket-card.completed-card .done-stamp {
+            position: absolute;
+            top: 10px;
+            left: 14px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            opacity: 0.9;
+        }
+
+        /* Thumb */
+        .card-thumb {
+            width: 64px; height: 64px;
+            border-radius: 10px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        /* FAB */
+        .fab {
+            position: fixed;
+            bottom: 28px;
+            left: 20px;
+            width: 66px; height: 66px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 2.7rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(26,58,92,0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.14s;
+            line-height: 1;
+        }
+        .fab:active { transform: scale(0.86); }
+
+        /* BOTTOM SHEET */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.52);
+            z-index: 300;
+            backdrop-filter: blur(2px);
+        }
+        .modal-overlay.open { display: block; }
+        .modal-sheet {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: var(--surface);
+            border-radius: 24px 24px 0 0;
+            padding: 12px 20px env(safe-area-inset-bottom, 24px);
+            max-height: 94vh;
+            overflow-y: auto;
+            animation: sheetUp 0.28s cubic-bezier(0.32,0.72,0,1);
+        }
+        @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .sheet-handle { width: 44px; height: 5px; background: #e0e0e0; border-radius: 3px; margin: 0 auto 18px; }
+        .sheet-title  { font-size: 1.45rem; font-weight: 800; color: var(--primary); margin-bottom: 18px; }
+
+        /* Form */
+        .form-row   { margin-bottom: 15px; }
+        .form-label { display: block; font-size: 1.05rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+        .form-input {
+            width: 100%;
+            padding: 13px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1.15rem;
+            font-family: inherit;
+            color: var(--text);
+            outline: none;
+            background: #fafafa;
+            transition: border-color 0.18s;
+            -webkit-appearance: none;
+            direction: rtl;
+        }
+        .form-input:focus { border-color: var(--primary-mid); background: white; }
+        textarea.form-input { resize: none; min-height: 80px; line-height: 1.5; }
+
+        /* Status toggle */
+        .status-toggle {
+            display: flex;
+            gap: 0;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .status-toggle button {
+            flex: 1;
+            padding: 13px 0;
+            border: none;
+            background: #fafafa;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            color: var(--muted);
+            transition: all 0.18s;
+        }
+        .status-toggle button.active { background: var(--primary); color: white; }
+
+        /* Photo */
+        .photo-area {
+            border: 2.5px dashed #d1d5db;
+            border-radius: 12px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            background: #fafafa;
+        }
+        .photo-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .photo-placeholder { text-align: center; color: var(--muted); pointer-events: none; }
+        .photo-placeholder .ph-icon { font-size: 2.5rem; display: block; margin-bottom: 5px; }
+        .photo-placeholder .ph-text { font-size: 0.95rem; font-weight: 600; }
+        #photoPreview { width: 100%; max-height: 200px; object-fit: cover; display: none; pointer-events: none; }
+        .btn-remove-photo {
+            display: none; margin-top: 7px; width: 100%; padding: 9px;
+            background: #fef2f2; color: #dc2626; border: 1.5px solid #fca5a5;
+            border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: inherit;
+        }
+        .upload-progress { display: none; align-items: center; gap: 8px; color: var(--muted); font-size: 0.95rem; margin-top: 5px; }
+        .upload-progress.show { display: flex; }
+
+        /* Completion date row */
+        .completion-row { display: none; }
+        .completion-row.show { display: block; }
+
+        /* Form actions */
+        .form-actions { display: flex; gap: 10px; margin-top: 20px; padding-bottom: 8px; }
+        .btn {
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity 0.14s;
+        }
+        .btn:active { opacity: 0.72; }
+        .btn-primary { flex: 1; background: var(--primary); color: white; }
+        .btn-ghost   { background: #f3f4f6; color: var(--muted); padding: 14px 18px; }
+        .btn-danger  { background: #fef2f2; color: #dc2626; padding: 14px 16px; border: 1.5px solid #fca5a5; }
+
+        /* Empty / loading */
+        .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); }
+        .empty-icon  { font-size: 4.5rem; margin-bottom: 10px; }
+        .empty-text  { font-size: 1.35rem; font-weight: 600; }
+        .empty-sub   { font-size: 1.05rem; margin-top: 6px; opacity: 0.7; }
+        .loading-state {
+            display: flex; align-items: center; justify-content: center;
+            padding: 60px 20px; color: var(--muted); gap: 10px; font-size: 1.15rem;
+        }
+        .spinner {
+            width: 24px; height: 24px;
+            border: 3px solid #e5e7eb;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Snackbar */
+        .snackbar {
+            position: fixed; bottom: 104px; left: 50%;
+            transform: translateX(-50%) translateY(16px);
+            background: #1f2937; color: white;
+            padding: 12px 24px; border-radius: 24px;
+            font-size: 1.1rem; opacity: 0;
+            transition: all 0.26s cubic-bezier(0.32,0.72,0,1);
+            z-index: 500; white-space: nowrap;
+            pointer-events: none; max-width: 90vw; text-align: center;
+        }
+        .snackbar.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* STATS MODAL */
+        .stats-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+            z-index: 400; align-items: flex-start; justify-content: center; padding: 20px;
+            overflow-y: auto;
+        }
+        .stats-overlay.active { display: flex; }
+        .stats-box {
+            background: #fff; border-radius: 22px; padding: 24px 20px;
+            max-width: 440px; width: 100%; margin-top: 20px;
+            direction: rtl;
+        }
+        .stats-title {
+            font-size: 1.5rem; font-weight: 900; color: var(--primary);
+            margin-bottom: 20px; text-align: center;
+        }
+        .stats-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 12px; margin-bottom: 22px;
+        }
+        .stat-card {
+            background: var(--bg); border-radius: 14px; padding: 16px;
+            text-align: center;
+        }
+        .stat-card .sv { font-size: 2.3rem; font-weight: 900; color: var(--primary); }
+        .stat-card .sl { font-size: 0.9rem; color: var(--muted); font-weight: 600; margin-top: 3px; }
+        .stat-card.highlight .sv { color: #15803d; }
+        .stat-card.highlight2 .sv { color: #ea580c; }
+
+        .stats-section-title {
+            font-size: 1.1rem; font-weight: 800; color: var(--primary);
+            margin: 18px 0 10px; border-bottom: 2px solid #e5e7eb; padding-bottom: 6px;
+        }
+
+        .cat-bar-item {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 9px;
+        }
+        .cat-bar-label { font-size: 0.95rem; font-weight: 600; width: 140px; flex-shrink: 0; }
+        .cat-bar-track { flex: 1; height: 12px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
+        .cat-bar-fill  { height: 100%; border-radius: 999px; background: var(--primary); transition: width 0.6s; }
+        .cat-bar-count { font-size: 0.9rem; font-weight: 700; color: var(--muted); width: 20px; text-align: center; }
+
+        .recurring-alert {
+            background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 12px;
+            padding: 12px 14px; margin-bottom: 9px;
+        }
+        .recurring-alert .ra-title { font-size: 1rem; font-weight: 700; color: #dc2626; }
+        .recurring-alert .ra-sub   { font-size: 0.88rem; color: #9b1c1c; margin-top: 3px; }
+
+        .res-time-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 9px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.95rem;
+        }
+        .res-time-item:last-child { border-bottom: none; }
+        .res-days { font-weight: 700; color: var(--primary); }
+
+        .stats-close {
+            margin-top: 20px; width: 100%;
+            background: var(--primary); color: #fff; border: none;
+            border-radius: 13px; padding: 13px;
+            font-size: 1.1rem; font-weight: 700; cursor: pointer; font-family: inherit;
+        }
+
+        /* FOOTER */
+        .app-footer { text-align: center; padding: 10px 0 22px; }
+        .cp-link { font-size: 12px; color: rgba(0,0,0,.35); cursor: pointer; text-decoration: underline; }
+
+        /* COPYRIGHT MODAL */
+        .cp-overlay {
+            position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.55);
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .cp-overlay.active { display: flex; }
+        .cp-box { background: #fff; border-radius: 22px; padding: 26px 22px; max-width: 360px; width: 100%; direction: rtl; }
+        .cp-title { font-size: 19px; font-weight: 900; color: var(--primary); margin-bottom: 14px; text-align: center; }
+        .cp-text  { font-size: 14px; line-height: 1.8; color: #333; }
+        .cp-close { margin-top: 20px; width: 100%; background: var(--primary); color: #fff; border: none; border-radius: 13px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+    <div class="header-row">
+        <div class="app-title">🔧 מעקב תקלות וקריאות</div>
+        <div class="sync-dot" id="syncDot"></div>
+    </div>
+    <div class="app-stats" id="appStats">מתחבר...</div>
+    <div class="header-actions">
+        <button class="btn-stats" id="btnStatsOpen">📊 סטטיסטיקה</button>
+    </div>
+</header>
+
+<!-- STATUS TABS -->
+<nav class="status-tabs">
+    <button class="tab-btn active" data-tab="open">פתוחות</button>
+    <button class="tab-btn" data-tab="completed">בוצע</button>
+    <button class="tab-btn" data-tab="all">הכל</button>
+</nav>
+
+<!-- TICKET LIST -->
+<main class="ticket-list" id="ticketList">
+    <div class="loading-state"><div class="spinner"></div><span>טוען קריאות...</span></div>
+</main>
+
+<!-- FOOTER -->
+<footer class="app-footer">
+    <span class="cp-link" id="cpLink">© יבגני ציפיס 2026 — כל הזכויות שמורות</span>
+</footer>
+
+<!-- FAB -->
+<button class="fab" id="fabBtn" aria-label="קריאה חדשה">+</button>
+
+<!-- BOTTOM SHEET MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title" id="sheetTitle">קריאה חדשה</div>
+
+        <div class="form-row">
+            <label class="form-label" for="inputDesc">תיאור התקלה</label>
+            <input class="form-input" type="text" id="inputDesc"
+                   placeholder="לדוגמה: מאוורר המאפייה לא עובד"
+                   autocomplete="off" autocorrect="off">
+        </div>
+
+        <div class="form-row">
+            <label class="form-label" for="inputCat">קטגוריה</label>
+            <select class="form-input" id="inputCat"></select>
+        </div>
+
+        <div class="form-row">
+            <label class="form-label" for="inputNum">מספר קריאה <span style="font-weight:400;opacity:0.6">(אופציונלי)</span></label>
+            <input class="form-input" type="text" id="inputNum"
+                   placeholder="מספר קריאה מהמערכת הפנימית" autocomplete="off">
+        </div>
+
+        <div class="form-row">
+            <label class="form-label" for="inputDate">תאריך הגשת הקריאה</label>
+            <input class="form-input" type="date" id="inputDate">
+        </div>
+
+        <div class="form-row">
+            <label class="form-label">סטטוס</label>
+            <div class="status-toggle">
+                <button type="button" id="statusOpen" class="active">פתוחה</button>
+                <button type="button" id="statusDone">בוצע ✓</button>
+            </div>
+        </div>
+
+        <div class="form-row completion-row" id="completionRow">
+            <label class="form-label" for="inputDateDone">תאריך ביצוע</label>
+            <input class="form-input" type="date" id="inputDateDone">
+        </div>
+
+        <div class="form-row">
+            <label class="form-label">תמונה <span style="font-weight:400;opacity:0.6">(אופציונלי)</span></label>
+            <div class="photo-area" id="photoArea">
+                <input type="file" id="inputPhoto" accept="image/*">
+                <img id="photoPreview" alt="תמונת תקלה">
+                <div class="photo-placeholder" id="photoPlaceholder">
+                    <span class="ph-icon">📷</span>
+                    <span class="ph-text">לחץ לצילום או העלאת תמונה</span>
+                </div>
+            </div>
+            <button class="btn-remove-photo" id="btnRemovePhoto" type="button">✕ הסר תמונה</button>
+            <div class="upload-progress" id="uploadProgress">
+                <div class="spinner"></div>
+                <span>מעלה תמונה...</span>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <label class="form-label" for="inputNotes">הערות <span style="font-weight:400;opacity:0.6">(אופציונלי)</span></label>
+            <textarea class="form-input" id="inputNotes" placeholder="פרטים נוספים, מיקום מדויק..."></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn btn-primary" id="btnSave">שמור קריאה</button>
+            <button class="btn btn-danger"  id="btnDelete" style="display:none">מחק</button>
+            <button class="btn btn-ghost"   id="btnCancel">ביטול</button>
+        </div>
+    </div>
+</div>
+
+<div class="snackbar" id="snackbar"></div>
+
+<!-- STATS MODAL -->
+<div class="stats-overlay" id="statsOverlay">
+    <div class="stats-box">
+        <div class="stats-title">📊 סטטיסטיקה</div>
+        <div id="statsContent"></div>
+        <button class="stats-close" id="btnStatsClose">סגור</button>
+    </div>
+</div>
+
+<!-- COPYRIGHT MODAL -->
+<div class="cp-overlay" id="cpOverlay">
+    <div class="cp-box">
+        <div class="cp-title">זכויות יוצרים</div>
+        <div class="cp-text">
+            © כל הזכויות שמורות ליבגני ציפיס 2026<br><br>
+            יישום זה פותח ועוצב על ידי יבגני ציפיס לצורך מעקב אחר תקלות וקריאות שירות בסניף.<br><br>
+            חל איסור על העתקה, הפצה או שימוש מסחרי בכל חלק מהיישום ללא אישור בכתב מהמחבר.<br><br>
+            כל הסימנים המסחריים הם רכושם של בעליהם בהתאמה.
+        </div>
+        <button class="cp-close" id="cpClose">סגור</button>
+    </div>
+</div>
+
+<script type="module">
+// =====================================================================
+//  FIREBASE CONFIG  (same project, new collection "tickets")
+// =====================================================================
+const firebaseConfig = {
+    apiKey:            "AIzaSyCRBmBDYpcERv_tbwd0E7GEskm-_xHYBhk",
+    authDomain:        "expiry-tracker-ebf92.firebaseapp.com",
+    projectId:         "expiry-tracker-ebf92",
+    storageBucket:     "expiry-tracker-ebf92.firebasestorage.app",
+    messagingSenderId: "617575327249",
+    appId:             "1:617575327249:web:75f84278678ad237bef3b0"
+};
+
+// ─────────────────────────────────────────────
+//  CATEGORIES
+// ─────────────────────────────────────────────
+const CATEGORIES = [
+    { id: 'refrigeration', name: '❄️ קירור ומקרור' },
+    { id: 'lighting',      name: '💡 תאורה' },
+    { id: 'equipment',     name: '⚙️ ציוד ומכונות' },
+    { id: 'bakery',        name: '🥖 מאפייה' },
+    { id: 'infrastructure',name: '🏗️ תשתיות ורצפה' },
+    { id: 'safety',        name: '🦺 בטיחות' },
+    { id: 'shelving',      name: '🗄️ מדפים ועגלות' },
+    { id: 'plumbing',      name: '🚿 אינסטלציה' },
+    { id: 'electrical',    name: '⚡ חשמל' },
+    { id: 'general',       name: '🔧 כללי' },
+];
+
+// ─────────────────────────────────────────────
+//  COLOR BY AGE (older = darker)
+// ─────────────────────────────────────────────
+function ticketStyle(daysSince, status) {
+    if (status === 'completed')
+        return { bg: '#e5e7eb', text: '#374151', pulse: false };
+    if (daysSince < 3)  return { bg: '#15803d', text: '#ffffff', pulse: false };
+    if (daysSince < 6)  return { bg: '#ea580c', text: '#ffffff', pulse: false };
+    if (daysSince < 9)  return { bg: '#dc2626', text: '#ffffff', pulse: false };
+    return                     { bg: '#7f1d1d', text: '#fca5a5', pulse: true  };
+}
+
+function sectionLabel(daysSince) {
+    if (daysSince < 3)  return '🟢 קריאות חדשות (עד 3 ימים)';
+    if (daysSince < 6)  return '🟠 בטיפול (3–6 ימים)';
+    if (daysSince < 9)  return '🔴 דחוף (6–9 ימים)';
+    return                     '🟣 קריטי (9+ ימים)';
+}
+
+function sectionKey(daysSince) {
+    if (daysSince < 3)  return 'fresh';
+    if (daysSince < 6)  return 'medium';
+    if (daysSince < 9)  return 'urgent';
+    return 'critical';
+}
+
+// ─────────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────────
+function daysSince(dateStr) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const d = new Date(dateStr + 'T00:00:00');
+    return Math.floor((today - d) / 86_400_000);
+}
+
+function fmtDate(dateStr) {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    return `${d}/${m}/${y}`;
+}
+
+function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+}
+
+function getCatName(id) {
+    return CATEGORIES.find(c => c.id === id)?.name ?? id;
+}
+
+function escHtml(s) {
+    return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let tickets = [];
+let activeTab = 'open';
+let editId   = null;
+let currentStatus = 'open';
+
+let selectedPhotoFile = null;
+let existingPhotoUrl  = null;
+let photoWasRemoved   = false;
+
+let db, colRef;
+let addDocFn, updateDocFn, deleteDocFn, docFn, serverTsFn, colFn, onSnapshotFn;
+
+// ─────────────────────────────────────────────
+//  DOM
+// ─────────────────────────────────────────────
+const ticketList    = document.getElementById('ticketList');
+const appStats      = document.getElementById('appStats');
+const syncDot       = document.getElementById('syncDot');
+const fabBtn        = document.getElementById('fabBtn');
+const modalEl       = document.getElementById('modalOverlay');
+const sheetTitle    = document.getElementById('sheetTitle');
+const inputDesc     = document.getElementById('inputDesc');
+const inputCat      = document.getElementById('inputCat');
+const inputNum      = document.getElementById('inputNum');
+const inputDate     = document.getElementById('inputDate');
+const inputDateDone = document.getElementById('inputDateDone');
+const inputNotes    = document.getElementById('inputNotes');
+const inputPhoto    = document.getElementById('inputPhoto');
+const photoArea     = document.getElementById('photoArea');
+const photoPreview  = document.getElementById('photoPreview');
+const photoPlaceholder = document.getElementById('photoPlaceholder');
+const btnRemovePhoto   = document.getElementById('btnRemovePhoto');
+const uploadProgress   = document.getElementById('uploadProgress');
+const completionRow    = document.getElementById('completionRow');
+const statusOpenBtn    = document.getElementById('statusOpen');
+const statusDoneBtn    = document.getElementById('statusDone');
+const btnSave   = document.getElementById('btnSave');
+const btnDelete = document.getElementById('btnDelete');
+const btnCancel = document.getElementById('btnCancel');
+const snackbar  = document.getElementById('snackbar');
+
+// ─────────────────────────────────────────────
+//  TABS
+// ─────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeTab = btn.dataset.tab;
+        render();
+    });
+});
+
+// ─────────────────────────────────────────────
+//  BUILD CATEGORY SELECT
+// ─────────────────────────────────────────────
+CATEGORIES.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat.id;
+    opt.textContent = cat.name;
+    inputCat.appendChild(opt);
+});
+
+// ─────────────────────────────────────────────
+//  STATUS TOGGLE
+// ─────────────────────────────────────────────
+function setStatus(s) {
+    currentStatus = s;
+    statusOpenBtn.classList.toggle('active', s === 'open');
+    statusDoneBtn.classList.toggle('active', s === 'completed');
+    completionRow.classList.toggle('show', s === 'completed');
+    if (s === 'completed' && !inputDateDone.value) {
+        inputDateDone.value = todayStr();
+    }
+}
+
+statusOpenBtn.addEventListener('click', () => setStatus('open'));
+statusDoneBtn.addEventListener('click', () => setStatus('completed'));
+
+// ─────────────────────────────────────────────
+//  RENDER
+// ─────────────────────────────────────────────
+function render() {
+    let filtered = activeTab === 'all' ? [...tickets]
+        : tickets.filter(t => t.status === activeTab);
+
+    // Sort: open by age DESC (oldest first); completed by dateCompleted DESC
+    filtered.sort((a, b) => {
+        if (a.status === 'open' && b.status === 'open') {
+            return daysSince(b.dateReported) - daysSince(a.dateReported);
+        }
+        if (a.status === 'completed' && b.status === 'completed') {
+            return (b.dateCompleted || '').localeCompare(a.dateCompleted || '');
+        }
+        // open before completed in "all" tab
+        if (a.status === 'open') return -1;
+        return 1;
+    });
+
+    const openCount     = tickets.filter(t => t.status === 'open').length;
+    const criticalCount = tickets.filter(t => t.status === 'open' && daysSince(t.dateReported) >= 6).length;
+    let stats = `סה"כ ${tickets.length} קריאות · פתוחות: ${openCount}`;
+    if (criticalCount) stats += ` · <span class="stat-urgent">${criticalCount} דחוף/קריטי</span>`;
+    appStats.innerHTML = stats;
+
+    if (filtered.length === 0) {
+        ticketList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">✅</div>
+                <div class="empty-text">אין קריאות להצגה</div>
+                <div class="empty-sub">לחץ + כדי להוסיף קריאה חדשה</div>
+            </div>`;
+        return;
+    }
+
+    ticketList.innerHTML = '';
+    let lastSection = null;
+
+    filtered.forEach(t => {
+        const age    = daysSince(t.dateReported);
+        const style  = ticketStyle(age, t.status);
+        const secKey = t.status === 'completed' ? 'completed' : sectionKey(age);
+
+        if (secKey !== lastSection) {
+            lastSection = secKey;
+            const div = document.createElement('div');
+            div.className = 'section-divider';
+            const label = t.status === 'completed' ? '✅ בוצע' : sectionLabel(age);
+            div.innerHTML = `<span>${label}</span>`;
+            ticketList.appendChild(div);
+        }
+
+        const card = document.createElement('div');
+        card.className = 'ticket-card' + (t.status === 'completed' ? ' completed-card' : '');
+        card.style.background = style.bg;
+        card.style.color      = style.text;
+
+        const numHtml   = t.reportNumber ? `<div class="card-num">קריאה #${escHtml(t.reportNumber)}</div>` : '';
+        const notesHtml = t.notes ? `<div class="card-notes">📝 ${escHtml(t.notes)}</div>` : '';
+        const thumbHtml = t.photoUrl ? `<img class="card-thumb" src="${escHtml(t.photoUrl)}" alt="photo" loading="lazy">` : '';
+        const doneHtml  = t.status === 'completed' ? `<div class="done-stamp">✅</div>` : '';
+        const dateInfo  = t.status === 'completed' && t.dateCompleted
+            ? `<div class="card-date">בוצע: ${fmtDate(t.dateCompleted)}</div>`
+            : `<div class="card-date">נפתח: ${fmtDate(t.dateReported)}</div>`;
+
+        const badgeNum  = t.status === 'completed' ? '✓' : age;
+        const badgeUnit = t.status === 'completed' ? 'בוצע' : (age === 1 ? 'יום' : 'ימים');
+
+        card.innerHTML = `
+            ${doneHtml}
+            <div class="card-badge">
+                <div class="badge-number">${badgeNum}</div>
+                <div class="badge-unit">${badgeUnit}</div>
+            </div>
+            <div class="card-sep"></div>
+            <div class="card-info">
+                <div class="card-desc">${escHtml(t.description)}</div>
+                <span class="card-cat-badge">${getCatName(t.category)}</span>
+                ${numHtml}
+                ${dateInfo}
+                ${notesHtml}
+            </div>
+            ${thumbHtml}`;
+
+        card.addEventListener('click', () => openEdit(t));
+        ticketList.appendChild(card);
+    });
+}
+
+// ─────────────────────────────────────────────
+//  PHOTO
+// ─────────────────────────────────────────────
+function showPhotoPreview(src) {
+    photoPreview.src = src;
+    photoPreview.style.display = 'block';
+    photoPlaceholder.style.display = 'none';
+    btnRemovePhoto.style.display = 'block';
+}
+function clearPhotoPreview() {
+    photoPreview.src = '';
+    photoPreview.style.display = 'none';
+    photoPlaceholder.style.display = 'flex';
+    btnRemovePhoto.style.display = 'none';
+    inputPhoto.value = '';
+    selectedPhotoFile = null;
+}
+
+inputPhoto.addEventListener('change', () => {
+    const file = inputPhoto.files[0];
+    if (!file) return;
+    selectedPhotoFile = file;
+    photoWasRemoved = false;
+    const reader = new FileReader();
+    reader.onload = e => showPhotoPreview(e.target.result);
+    reader.readAsDataURL(file);
+});
+
+btnRemovePhoto.addEventListener('click', () => {
+    photoWasRemoved = true;
+    selectedPhotoFile = null;
+    existingPhotoUrl = null;
+    clearPhotoPreview();
+});
+
+async function compressPhoto(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = e => {
+            const img = new Image();
+            img.onerror = reject;
+            img.onload = () => {
+                const MAX = 900;
+                let w = img.width, h = img.height;
+                if (w > MAX || h > MAX) {
+                    if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                    else       { w = Math.round(w * MAX / h); h = MAX; }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', 0.78));
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// ─────────────────────────────────────────────
+//  MODAL
+// ─────────────────────────────────────────────
+function openAdd() {
+    editId = null;
+    sheetTitle.textContent = 'קריאה חדשה';
+    inputDesc.value  = '';
+    inputCat.value   = CATEGORIES[0].id;
+    inputNum.value   = '';
+    inputDate.value  = todayStr();
+    inputDateDone.value = '';
+    inputNotes.value = '';
+    clearPhotoPreview();
+    existingPhotoUrl = null;
+    photoWasRemoved  = false;
+    setStatus('open');
+    btnDelete.style.display = 'none';
+    btnSave.textContent = 'שמור קריאה';
+    modalEl.classList.add('open');
+    setTimeout(() => inputDesc.focus(), 300);
+}
+
+function openEdit(t) {
+    editId = t.id;
+    sheetTitle.textContent = 'עריכת קריאה';
+    inputDesc.value  = t.description;
+    inputCat.value   = t.category;
+    inputNum.value   = t.reportNumber || '';
+    inputDate.value  = t.dateReported;
+    inputDateDone.value = t.dateCompleted || '';
+    inputNotes.value = t.notes || '';
+    existingPhotoUrl = t.photoUrl || null;
+    photoWasRemoved  = false;
+    selectedPhotoFile = null;
+    if (t.photoUrl) showPhotoPreview(t.photoUrl);
+    else clearPhotoPreview();
+    setStatus(t.status || 'open');
+    btnDelete.style.display = '';
+    btnSave.textContent = 'עדכן';
+    modalEl.classList.add('open');
+}
+
+function closeModal() {
+    modalEl.classList.remove('open');
+    editId = null;
+    selectedPhotoFile = null;
+    existingPhotoUrl  = null;
+    photoWasRemoved   = false;
+}
+
+// ─────────────────────────────────────────────
+//  SAVE
+// ─────────────────────────────────────────────
+async function save() {
+    const description  = inputDesc.value.trim();
+    const dateReported = inputDate.value;
+    if (!description)  { showSnack('נא להזין תיאור תקלה'); inputDesc.focus(); return; }
+    if (!dateReported) { showSnack('נא לבחור תאריך'); inputDate.focus(); return; }
+
+    btnSave.disabled = true;
+    let photoUrl = existingPhotoUrl;
+
+    if (photoWasRemoved) {
+        photoUrl = null;
+    } else if (selectedPhotoFile) {
+        uploadProgress.classList.add('show');
+        try { photoUrl = await compressPhoto(selectedPhotoFile); }
+        catch { photoUrl = existingPhotoUrl; }
+        uploadProgress.classList.remove('show');
+    }
+
+    const data = {
+        description,
+        category:     inputCat.value,
+        reportNumber: inputNum.value.trim(),
+        dateReported,
+        dateCompleted: currentStatus === 'completed' ? (inputDateDone.value || todayStr()) : null,
+        status:       currentStatus,
+        notes:        inputNotes.value.trim(),
+        photoUrl:     photoUrl || null,
+    };
+
+    try {
+        if (editId) {
+            await updateDocFn(docFn(colRef, editId), data);
+            showSnack('✓ קריאה עודכנה');
+        } else {
+            await addDocFn(colRef, { ...data, addedAt: serverTsFn() });
+            showSnack('✓ קריאה נשמרה');
+        }
+        closeModal();
+    } catch (err) {
+        showSnack('שגיאה: ' + err.message);
+    }
+    btnSave.disabled = false;
+}
+
+async function remove() {
+    if (!editId || !confirm('למחוק קריאה זו?')) return;
+    try {
+        await deleteDocFn(docFn(colRef, editId));
+        showSnack('הקריאה נמחקה');
+        closeModal();
+    } catch { showSnack('שגיאה במחיקה'); }
+}
+
+// ─────────────────────────────────────────────
+//  STATISTICS
+// ─────────────────────────────────────────────
+function buildStats() {
+    const open      = tickets.filter(t => t.status === 'open');
+    const completed = tickets.filter(t => t.status === 'completed');
+
+    // Average resolution time
+    const resolved = completed.filter(t => t.dateReported && t.dateCompleted);
+    let avgDays = 0;
+    if (resolved.length) {
+        const total = resolved.reduce((sum, t) => {
+            const start = new Date(t.dateReported);
+            const end   = new Date(t.dateCompleted);
+            return sum + Math.max(0, Math.floor((end - start) / 86_400_000));
+        }, 0);
+        avgDays = (total / resolved.length).toFixed(1);
+    }
+
+    // Category breakdown (open tickets)
+    const catCount = {};
+    open.forEach(t => { catCount[t.category] = (catCount[t.category] || 0) + 1; });
+    const catEntries = Object.entries(catCount).sort((a, b) => b[1] - a[1]);
+    const maxCat = catEntries[0]?.[1] || 1;
+
+    // Recurring: categories with 2+ open tickets
+    const recurring = catEntries.filter(([, n]) => n >= 2);
+
+    // Recent completed with resolution times
+    const recentDone = resolved
+        .sort((a, b) => (b.dateCompleted || '').localeCompare(a.dateCompleted || ''))
+        .slice(0, 5);
+
+    let html = `
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="sv">${tickets.length}</div>
+            <div class="sl">סה"כ קריאות</div>
+        </div>
+        <div class="stat-card highlight2">
+            <div class="sv">${open.length}</div>
+            <div class="sl">קריאות פתוחות</div>
+        </div>
+        <div class="stat-card highlight">
+            <div class="sv">${completed.length}</div>
+            <div class="sl">בוצעו</div>
+        </div>
+        <div class="stat-card">
+            <div class="sv">${resolved.length ? avgDays : '–'}</div>
+            <div class="sl">ממוצע ימי טיפול</div>
+        </div>
+    </div>`;
+
+    if (recurring.length) {
+        html += `<div class="stats-section-title">⚠️ תקלות חוזרות</div>`;
+        recurring.forEach(([catId, count]) => {
+            html += `
+            <div class="recurring-alert">
+                <div class="ra-title">${getCatName(catId)}</div>
+                <div class="ra-sub">${count} קריאות פתוחות — מומלץ לבדוק החלפה או תיקון מקיף</div>
+            </div>`;
+        });
+    }
+
+    if (catEntries.length) {
+        html += `<div class="stats-section-title">📂 קריאות פתוחות לפי קטגוריה</div>`;
+        catEntries.forEach(([catId, count]) => {
+            const pct = Math.round((count / maxCat) * 100);
+            html += `
+            <div class="cat-bar-item">
+                <div class="cat-bar-label">${getCatName(catId)}</div>
+                <div class="cat-bar-track">
+                    <div class="cat-bar-fill" style="width:${pct}%"></div>
+                </div>
+                <div class="cat-bar-count">${count}</div>
+            </div>`;
+        });
+    }
+
+    if (recentDone.length) {
+        html += `<div class="stats-section-title">⏱️ זמן טיפול — קריאות אחרונות</div>`;
+        recentDone.forEach(t => {
+            const days = Math.floor((new Date(t.dateCompleted) - new Date(t.dateReported)) / 86_400_000);
+            html += `
+            <div class="res-time-item">
+                <span>${escHtml(t.description)}</span>
+                <span class="res-days">${days} ימים</span>
+            </div>`;
+        });
+    }
+
+    if (!catEntries.length && !recentDone.length) {
+        html += `<p style="text-align:center;color:var(--muted);padding:20px 0">אין מספיק נתונים עדיין</p>`;
+    }
+
+    document.getElementById('statsContent').innerHTML = html;
+    document.getElementById('statsOverlay').classList.add('active');
+}
+
+document.getElementById('btnStatsOpen').addEventListener('click', buildStats);
+document.getElementById('btnStatsClose').addEventListener('click', () => {
+    document.getElementById('statsOverlay').classList.remove('active');
+});
+document.getElementById('statsOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('statsOverlay'))
+        document.getElementById('statsOverlay').classList.remove('active');
+});
+
+// ─────────────────────────────────────────────
+//  SNACKBAR
+// ─────────────────────────────────────────────
+let snackTimer;
+function showSnack(msg) {
+    snackbar.textContent = msg;
+    snackbar.classList.add('show');
+    clearTimeout(snackTimer);
+    snackTimer = setTimeout(() => snackbar.classList.remove('show'), 3200);
+}
+
+// ─────────────────────────────────────────────
+//  EVENTS
+// ─────────────────────────────────────────────
+fabBtn.addEventListener('click', openAdd);
+btnSave.addEventListener('click', save);
+btnDelete.addEventListener('click', remove);
+btnCancel.addEventListener('click', closeModal);
+modalEl.addEventListener('click', e => { if (e.target === modalEl) closeModal(); });
+
+// COPYRIGHT
+document.getElementById('cpLink').addEventListener('click', () => {
+    document.getElementById('cpOverlay').classList.add('active');
+});
+document.getElementById('cpClose').addEventListener('click', () => {
+    document.getElementById('cpOverlay').classList.remove('active');
+});
+document.getElementById('cpOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('cpOverlay'))
+        document.getElementById('cpOverlay').classList.remove('active');
+});
+
+// ─────────────────────────────────────────────
+//  FIREBASE INIT
+// ─────────────────────────────────────────────
+async function initFirebase() {
+    const { initializeApp } =
+        await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js');
+    const { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } =
+        await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
+
+    addDocFn    = addDoc;
+    updateDocFn = updateDoc;
+    deleteDocFn = deleteDoc;
+    docFn       = doc;
+    serverTsFn  = serverTimestamp;
+    colFn       = collection;
+    onSnapshotFn = onSnapshot;
+
+    const app = initializeApp(firebaseConfig);
+    db     = getFirestore(app);
+    colRef = colFn(db, 'tickets');
+
+    onSnapshotFn(colRef, snap => {
+        tickets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        syncDot.classList.add('live');
+        render();
+    }, err => {
+        console.error('Firestore:', err);
+        syncDot.classList.remove('live');
+        appStats.textContent = 'שגיאת חיבור';
+    });
+}
+
+initFirebase().catch(err => {
+    appStats.textContent = 'שגיאה: ' + err.message;
+    ticketList.innerHTML = `
+        <div class="empty-state">
+            <div class="empty-icon">❌</div>
+            <div class="empty-text">${err.message}</div>
+        </div>`;
+});
+</script>
+</body>
+</html>
