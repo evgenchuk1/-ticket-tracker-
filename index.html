@@ -25,7 +25,7 @@
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            padding-bottom: 110px;
+            padding-bottom: 130px;
             -webkit-font-smoothing: antialiased;
         }
 
@@ -421,8 +421,16 @@
         }
 
         /* FOOTER */
-        .app-footer { text-align: center; padding: 10px 0 22px; }
-        .cp-link { font-size: 12px; color: rgba(0,0,0,.35); cursor: pointer; text-decoration: underline; }
+        .app-footer {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            text-align: center;
+            padding: 7px 0 env(safe-area-inset-bottom, 8px);
+            background: var(--bg);
+            border-top: 1px solid #e5e7eb;
+            z-index: 50;
+        }
+        .cp-link { font-size: 11px; color: rgba(0,0,0,.35); cursor: pointer; text-decoration: underline; }
 
         /* COPYRIGHT MODAL */
         .cp-overlay {
@@ -1160,6 +1168,38 @@ async function initFirebase() {
         syncDot.classList.remove('live');
         appStats.textContent = 'שגיאת חיבור';
     });
+
+    await seedIfEmpty();
+}
+
+// ─────────────────────────────────────────────
+//  SEED INITIAL TICKETS (runs once if collection is empty)
+// ─────────────────────────────────────────────
+const INITIAL_TICKETS = [
+    { description: 'מאוורר המאפייה',                  category: 'bakery',          dateReported: '2026-06-12', status: 'open',      dateCompleted: null },
+    { description: 'תאורה במקרר משקאות',               category: 'lighting',        dateReported: '2026-06-12', status: 'open',      dateCompleted: null },
+    { description: 'מכונת חיתוך / ניילון אבטיח',       category: 'equipment',       dateReported: '2026-06-11', status: 'open',      dateCompleted: null },
+    { description: 'רצפת מחסן — חיפוי',                category: 'infrastructure',  dateReported: '2026-06-10', status: 'open',      dateCompleted: null },
+    { description: 'חיפוי קיר תחתון ליד המאפייה',      category: 'infrastructure',  dateReported: '2026-06-08', status: 'open',      dateCompleted: null },
+    { description: 'מנורות פלורסנט במקפיא גלידות',     category: 'lighting',        dateReported: '2026-06-08', status: 'open',      dateCompleted: null },
+    { description: 'מעקה זכוכית במקרר דגים',           category: 'refrigeration',   dateReported: '2026-06-08', status: 'open',      dateCompleted: null },
+    { description: 'צבע בכניסה למחסן',                 category: 'infrastructure',  dateReported: '2026-06-08', status: 'completed', dateCompleted: '2026-06-13' },
+    { description: 'פנל ברזל בתיקרה במאפייה',          category: 'bakery',          dateReported: '2026-06-08', status: 'completed', dateCompleted: '2026-06-13' },
+];
+
+async function seedIfEmpty() {
+    const { getDocs } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
+    const snap = await getDocs(colRef);
+    if (snap.size > 0) return;
+    for (const t of INITIAL_TICKETS) {
+        await addDocFn(colRef, {
+            ...t,
+            reportNumber: '',
+            notes: '',
+            photoUrl: null,
+            addedAt: serverTsFn(),
+        });
+    }
 }
 
 initFirebase().catch(err => {
