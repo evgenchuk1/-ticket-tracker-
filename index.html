@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#1a3a5c">
+    <meta name="theme-color" content="#CC0030">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="מעקב תקלות">
     <title>מעקב תקלות וקריאות</title>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         :root {
-            --primary: #1a3a5c;
-            --primary-mid: #2563a8;
-            --bg: #f0f3f8;
-            --surface: #ffffff;
-            --text: #12263a;
-            --muted: #6b7280;
+            --primary:     #CC0030;
+            --primary-mid: #E8003A;
+            --primary-dark:#990020;
+            --bg:          #FFECEC;
+            --surface:     #ffffff;
+            --text:        #2A0010;
+            --muted:       #885566;
             --radius: 14px;
-            --shadow: 0 2px 10px rgba(0,0,0,0.14);
+            --shadow: 0 2px 12px rgba(180,0,40,0.13);
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
@@ -31,26 +32,34 @@
 
         /* HEADER */
         .app-header {
-            background: var(--primary);
+            background: linear-gradient(135deg, #DD0030 0%, #AA0020 100%);
             color: white;
-            padding: 16px 16px 12px;
+            padding: 14px 16px 12px;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 14px rgba(0,0,0,0.35);
+            box-shadow: 0 4px 20px rgba(180,0,40,0.55);
         }
-        .header-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .app-title  { font-size: 1.45rem; font-weight: 800; }
+        .header-row   { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .header-brand { display: flex; align-items: center; gap: 11px; }
+        .header-logo  {
+            width: 46px; height: 46px; border-radius: 12px; object-fit: cover;
+            flex-shrink: 0; box-shadow: 0 2px 10px rgba(0,0,0,.35);
+        }
+        .header-titles { display: flex; flex-direction: column; }
+        .app-title    { font-size: 1.3rem; font-weight: 900; letter-spacing: -.3px; line-height: 1.2;
+                        text-shadow: 0 1px 3px rgba(0,0,0,.25); }
+        .app-subtitle { font-size: 0.78rem; opacity: 0.82; margin-top: 1px; }
         .sync-dot {
             width: 12px; height: 12px;
             border-radius: 50%;
-            background: #9ca3af;
+            background: rgba(255,255,255,0.35);
             transition: background 0.4s;
             flex-shrink: 0;
         }
-        .sync-dot.live { background: #4ade80; box-shadow: 0 0 7px #4ade80; }
-        .app-stats { font-size: 1rem; opacity: 0.82; margin-top: 4px; }
-        .stat-urgent { color: #fca5a5; font-weight: 700; }
+        .sync-dot.live { background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+        .app-stats    { font-size: 0.95rem; opacity: 0.85; margin-top: 6px; }
+        .stat-urgent  { color: #fda4a4; font-weight: 700; }
 
         /* Header action row */
         .header-actions {
@@ -62,14 +71,13 @@
             flex: 1;
             padding: 8px 0;
             border-radius: 999px;
-            border: 2px solid rgba(255,255,255,0.6);
-            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.14);
             color: white;
-            font-size: 1rem;
+            font-size: 0.97rem;
             font-weight: 700;
             cursor: pointer;
             font-family: inherit;
-            -webkit-tap-highlight-color: transparent;
             transition: all 0.18s;
         }
         .btn-stats:active { opacity: 0.6; }
@@ -78,10 +86,11 @@
         .status-tabs {
             background: var(--surface);
             display: flex;
-            border-bottom: 2px solid #e5e7eb;
+            border-bottom: 2px solid #f5c0c0;
             position: sticky;
-            top: 104px;
+            top: 0;
             z-index: 99;
+            box-shadow: 0 2px 8px rgba(180,0,40,0.08);
         }
         .tab-btn {
             flex: 1;
@@ -96,7 +105,6 @@
             border-bottom: 3px solid transparent;
             margin-bottom: -2px;
             transition: all 0.18s;
-            -webkit-tap-highlight-color: transparent;
         }
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
@@ -126,7 +134,7 @@
             content: '';
             flex: 1;
             height: 1px;
-            background: #d1d5db;
+            background: #f0b0b8;
         }
 
         /* Ticket card */
@@ -195,21 +203,23 @@
             left: 20px;
             width: 66px; height: 66px;
             border-radius: 50%;
-            background: var(--primary);
+            background: linear-gradient(145deg, #E8003A 0%, #AA0020 100%);
             color: white;
             border: none;
             font-size: 2.7rem;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(26,58,92,0.55);
+            box-shadow: 0 6px 22px rgba(180,0,40,0.55), 0 4px 0 #730016;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 200;
-            -webkit-tap-highlight-color: transparent;
-            transition: transform 0.14s;
+            transition: transform 0.12s, box-shadow 0.12s;
             line-height: 1;
         }
-        .fab:active { transform: scale(0.86); }
+        .fab:active {
+            transform: scale(0.88) translateY(3px);
+            box-shadow: 0 2px 8px rgba(180,0,40,0.4), 0 1px 0 #730016;
+        }
 
         /* BOTTOM SHEET */
         .modal-overlay {
@@ -232,7 +242,7 @@
             animation: sheetUp 0.28s cubic-bezier(0.32,0.72,0,1);
         }
         @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .sheet-handle { width: 44px; height: 5px; background: #e0e0e0; border-radius: 3px; margin: 0 auto 18px; }
+        .sheet-handle { width: 44px; height: 5px; background: #fca5a5; border-radius: 3px; margin: 0 auto 18px; }
         .sheet-title  { font-size: 1.45rem; font-weight: 800; color: var(--primary); margin-bottom: 18px; }
 
         /* Form */
@@ -241,25 +251,25 @@
         .form-input {
             width: 100%;
             padding: 13px 15px;
-            border: 2px solid #e5e7eb;
+            border: 2px solid #f5c0c0;
             border-radius: 12px;
             font-size: 1.15rem;
             font-family: inherit;
             color: var(--text);
             outline: none;
-            background: #fafafa;
-            transition: border-color 0.18s;
+            background: #fff8f8;
+            transition: border-color 0.18s, box-shadow 0.18s;
             -webkit-appearance: none;
             direction: rtl;
         }
-        .form-input:focus { border-color: var(--primary-mid); background: white; }
+        .form-input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(204,0,48,0.1); }
         textarea.form-input { resize: none; min-height: 80px; line-height: 1.5; }
 
         /* Status toggle */
         .status-toggle {
             display: flex;
             gap: 0;
-            border: 2px solid #e5e7eb;
+            border: 2px solid #fca5a5;
             border-radius: 12px;
             overflow: hidden;
         }
@@ -267,7 +277,7 @@
             flex: 1;
             padding: 13px 0;
             border: none;
-            background: #fafafa;
+            background: #fff8f8;
             font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
@@ -275,11 +285,11 @@
             color: var(--muted);
             transition: all 0.18s;
         }
-        .status-toggle button.active { background: var(--primary); color: white; }
+        .status-toggle button.active { background: linear-gradient(135deg,#E8003A,#AA0020); color: white; }
 
         /* Photo */
         .photo-area {
-            border: 2.5px dashed #d1d5db;
+            border: 2.5px dashed #fca5a5;
             border-radius: 12px;
             min-height: 120px;
             display: flex;
@@ -288,7 +298,7 @@
             cursor: pointer;
             overflow: hidden;
             position: relative;
-            background: #fafafa;
+            background: #fff8f8;
         }
         .photo-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
         .photo-placeholder { text-align: center; color: var(--muted); pointer-events: none; }
@@ -320,9 +330,9 @@
             transition: opacity 0.14s;
         }
         .btn:active { opacity: 0.72; }
-        .btn-primary { flex: 1; background: var(--primary); color: white; }
-        .btn-ghost   { background: #f3f4f6; color: var(--muted); padding: 14px 18px; }
-        .btn-danger  { background: #fef2f2; color: #dc2626; padding: 14px 16px; border: 1.5px solid #fca5a5; }
+        .btn-primary { flex: 1; background: linear-gradient(135deg,#E8003A,#AA0020); color: white; box-shadow: 0 4px 14px rgba(180,0,40,0.35); }
+        .btn-ghost   { background: #fff0f1; color: var(--muted); padding: 14px 18px; border: 1.5px solid #ffc0c8; }
+        .btn-danger  { background: #fff0f1; color: var(--primary); padding: 14px 16px; border: 1.5px solid #fca5a5; }
 
         /* Empty / loading */
         .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); }
@@ -335,7 +345,7 @@
         }
         .spinner {
             width: 24px; height: 24px;
-            border: 3px solid #e5e7eb;
+            border: 3px solid rgba(204,0,48,0.2);
             border-top-color: var(--primary);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
@@ -358,15 +368,16 @@
 
         /* STATS MODAL */
         .stats-overlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+            display: none; position: fixed; inset: 0; background: rgba(80,0,20,0.6);
             z-index: 400; align-items: flex-start; justify-content: center; padding: 20px;
-            overflow-y: auto;
+            overflow-y: auto; backdrop-filter: blur(3px);
         }
         .stats-overlay.active { display: flex; }
         .stats-box {
             background: #fff; border-radius: 22px; padding: 24px 20px;
             max-width: 440px; width: 100%; margin-top: 20px;
             direction: rtl;
+            box-shadow: 0 8px 40px rgba(180,0,40,0.25);
         }
         .stats-title {
             font-size: 1.5rem; font-weight: 900; color: var(--primary);
@@ -382,12 +393,12 @@
         }
         .stat-card .sv { font-size: 2.3rem; font-weight: 900; color: var(--primary); }
         .stat-card .sl { font-size: 0.9rem; color: var(--muted); font-weight: 600; margin-top: 3px; }
-        .stat-card.highlight .sv { color: #15803d; }
-        .stat-card.highlight2 .sv { color: #ea580c; }
+        .stat-card.highlight .sv  { color: #0F6B2E; }
+        .stat-card.highlight2 .sv { color: #CC0030; }
 
         .stats-section-title {
             font-size: 1.1rem; font-weight: 800; color: var(--primary);
-            margin: 18px 0 10px; border-bottom: 2px solid #e5e7eb; padding-bottom: 6px;
+            margin: 18px 0 10px; border-bottom: 2px solid #ffc0c8; padding-bottom: 6px;
         }
 
         .cat-bar-item {
@@ -395,29 +406,31 @@
             margin-bottom: 9px;
         }
         .cat-bar-label { font-size: 0.95rem; font-weight: 600; width: 140px; flex-shrink: 0; }
-        .cat-bar-track { flex: 1; height: 12px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
+        .cat-bar-track { flex: 1; height: 12px; background: #ffe0e4; border-radius: 999px; overflow: hidden; }
         .cat-bar-fill  { height: 100%; border-radius: 999px; background: var(--primary); transition: width 0.6s; }
         .cat-bar-count { font-size: 0.9rem; font-weight: 700; color: var(--muted); width: 20px; text-align: center; }
 
         .recurring-alert {
-            background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 12px;
+            background: #fff0f1; border: 1.5px solid #fca5a5; border-radius: 12px;
             padding: 12px 14px; margin-bottom: 9px;
         }
-        .recurring-alert .ra-title { font-size: 1rem; font-weight: 700; color: #dc2626; }
-        .recurring-alert .ra-sub   { font-size: 0.88rem; color: #9b1c1c; margin-top: 3px; }
+        .recurring-alert .ra-title { font-size: 1rem; font-weight: 700; color: var(--primary); }
+        .recurring-alert .ra-sub   { font-size: 0.88rem; color: var(--primary-dark); margin-top: 3px; }
 
         .res-time-item {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 9px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.95rem;
+            padding: 9px 0; border-bottom: 1px solid #ffe0e4; font-size: 0.95rem;
         }
         .res-time-item:last-child { border-bottom: none; }
         .res-days { font-weight: 700; color: var(--primary); }
 
         .stats-close {
             margin-top: 20px; width: 100%;
-            background: var(--primary); color: #fff; border: none;
+            background: linear-gradient(135deg, #E8003A, #AA0020);
+            color: #fff; border: none;
             border-radius: 13px; padding: 13px;
             font-size: 1.1rem; font-weight: 700; cursor: pointer; font-family: inherit;
+            box-shadow: 0 4px 14px rgba(180,0,40,0.4);
         }
 
         /* FOOTER */
@@ -427,21 +440,141 @@
             text-align: center;
             padding: 7px 0 env(safe-area-inset-bottom, 8px);
             background: var(--bg);
-            border-top: 1px solid #e5e7eb;
+            border-top: 1px solid #f5c0c0;
             z-index: 50;
         }
-        .cp-link { font-size: 11px; color: rgba(0,0,0,.35); cursor: pointer; text-decoration: underline; }
+        .cp-link { font-size: 11px; color: rgba(140,0,30,.4); cursor: pointer; text-decoration: underline; }
 
         /* COPYRIGHT MODAL */
         .cp-overlay {
-            position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.55);
+            position: fixed; inset: 0; z-index: 400; background: rgba(80,0,20,.6);
             display: none; align-items: center; justify-content: center; padding: 20px;
+            backdrop-filter: blur(3px);
         }
         .cp-overlay.active { display: flex; }
-        .cp-box { background: #fff; border-radius: 22px; padding: 26px 22px; max-width: 360px; width: 100%; direction: rtl; }
+        .cp-box { background: #fff; border-radius: 22px; padding: 26px 22px; max-width: 360px; width: 100%; direction: rtl; box-shadow: 0 8px 40px rgba(180,0,40,0.25); }
         .cp-title { font-size: 19px; font-weight: 900; color: var(--primary); margin-bottom: 14px; text-align: center; }
-        .cp-text  { font-size: 14px; line-height: 1.8; color: #333; }
-        .cp-close { margin-top: 20px; width: 100%; background: var(--primary); color: #fff; border: none; border-radius: 13px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .cp-text  { font-size: 14px; line-height: 1.8; color: #444; }
+        .cp-close { margin-top: 20px; width: 100%; background: linear-gradient(135deg,#E8003A,#AA0020); color: #fff; border: none; border-radius: 13px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; box-shadow: 0 4px 14px rgba(180,0,40,0.35); }
+
+        /* PHOTO ACTION ROW */
+        .photo-action-row {
+            display: none;
+            gap: 8px;
+            margin-top: 7px;
+        }
+        .btn-photo-view, .btn-photo-crop {
+            flex: 1;
+            padding: 9px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            border: 1.5px solid;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-photo-view { background: #fff0f1; color: #990020; border-color: #fca5a5; }
+        .btn-photo-crop { background: #fff7ed; color: #c05000; border-color: #fdba74; }
+
+        /* LIGHTBOX */
+        .lightbox-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 700;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .lightbox-overlay.open { display: flex; }
+        .lightbox-img {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 12px;
+            object-fit: contain;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255,255,255,0.18);
+            border: none;
+            color: white;
+            font-size: 1.6rem;
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            font-family: inherit;
+        }
+
+        /* CROP MODAL */
+        .crop-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 800;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 12px;
+        }
+        .crop-modal-overlay.open { display: flex; }
+        .crop-modal-box {
+            background: #111;
+            border-radius: 20px;
+            padding: 14px;
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .crop-title {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 0;
+        }
+        #cropCanvas {
+            border-radius: 10px;
+            max-width: 100%;
+            touch-action: none;
+            display: block;
+            cursor: crosshair;
+            background: #000;
+        }
+        .crop-hint {
+            color: rgba(255,255,255,0.55);
+            font-size: 0.82rem;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .crop-actions { display: flex; gap: 8px; width: 100%; }
+        .btn-crop-confirm {
+            flex: 1; padding: 13px; border: none; border-radius: 12px;
+            background: #15803d; color: #fff;
+            font-size: 1.05rem; font-weight: 700; cursor: pointer; font-family: inherit;
+        }
+        .btn-crop-reset {
+            padding: 13px 14px; border: none; border-radius: 12px;
+            background: #374151; color: #d1d5db;
+            font-size: 1.05rem; font-weight: 700; cursor: pointer; font-family: inherit;
+        }
+        .btn-crop-cancel {
+            padding: 13px 14px; border: none; border-radius: 12px;
+            background: #7f1d1d; color: #fca5a5;
+            font-size: 1.05rem; font-weight: 700; cursor: pointer; font-family: inherit;
+        }
     </style>
 </head>
 <body>
@@ -449,7 +582,13 @@
 <!-- HEADER -->
 <header class="app-header">
     <div class="header-row">
-        <div class="app-title">🔧 מעקב תקלות וקריאות</div>
+        <div class="header-brand">
+            <img class="header-logo" src="logo.jpg" alt="שופרסל">
+            <div class="header-titles">
+                <div class="app-title">מעקב תקלות וקריאות</div>
+                <div class="app-subtitle">שופרסל — ניהול קריאות שירות</div>
+            </div>
+        </div>
         <div class="sync-dot" id="syncDot"></div>
     </div>
     <div class="app-stats" id="appStats">מתחבר...</div>
@@ -531,6 +670,10 @@
                 </div>
             </div>
             <button class="btn-remove-photo" id="btnRemovePhoto" type="button">✕ הסר תמונה</button>
+            <div class="photo-action-row" id="photoActionRow">
+                <button class="btn-photo-view" id="btnPhotoView" type="button">🔍 הצג מלא</button>
+                <button class="btn-photo-crop" id="btnCropTool" type="button">✂️ חתוך תמונה</button>
+            </div>
             <div class="upload-progress" id="uploadProgress">
                 <div class="spinner"></div>
                 <span>מעלה תמונה...</span>
@@ -572,6 +715,26 @@
             כל הסימנים המסחריים הם רכושם של בעליהם בהתאמה.
         </div>
         <button class="cp-close" id="cpClose">סגור</button>
+    </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox-overlay" id="lightboxOverlay">
+    <button class="lightbox-close" id="lightboxClose">✕</button>
+    <img class="lightbox-img" id="lightboxImg" alt="תמונה מלאה">
+</div>
+
+<!-- CROP MODAL -->
+<div class="crop-modal-overlay" id="cropModalOverlay">
+    <div class="crop-modal-box">
+        <p class="crop-title">✂️ חיתוך תמונה</p>
+        <canvas id="cropCanvas"></canvas>
+        <p class="crop-hint">גרור פינה לשינוי הבחירה · גרור בתוך המסגרת להזזה<br>הקש "איפוס" לחזרה לתמונה המלאה</p>
+        <div class="crop-actions">
+            <button class="btn-crop-confirm" id="btnCropConfirm">✓ אשר חיתוך</button>
+            <button class="btn-crop-reset"   id="btnCropReset">↺ איפוס</button>
+            <button class="btn-crop-cancel"  id="btnCropCancel">✕</button>
+        </div>
     </div>
 </div>
 
@@ -671,6 +834,7 @@ let currentStatus = 'open';
 let selectedPhotoFile = null;
 let existingPhotoUrl  = null;
 let photoWasRemoved   = false;
+let croppedDataUrl    = null;
 
 let db, colRef;
 let addDocFn, updateDocFn, deleteDocFn, docFn, serverTsFn, colFn, onSnapshotFn;
@@ -703,6 +867,19 @@ const btnSave   = document.getElementById('btnSave');
 const btnDelete = document.getElementById('btnDelete');
 const btnCancel = document.getElementById('btnCancel');
 const snackbar  = document.getElementById('snackbar');
+
+// ─────────────────────────────────────────────
+//  STICKY TABS OFFSET (dynamic header height)
+// ─────────────────────────────────────────────
+function syncTabsTop() {
+    const hdr = document.querySelector('.app-header');
+    const nav = document.querySelector('.status-tabs');
+    if (hdr && nav) nav.style.top = hdr.offsetHeight + 'px';
+}
+syncTabsTop();
+window.addEventListener('resize', syncTabsTop);
+// Re-sync after logo loads
+document.querySelector('.header-logo').addEventListener('load', syncTabsTop);
 
 // ─────────────────────────────────────────────
 //  TABS
@@ -840,14 +1017,17 @@ function showPhotoPreview(src) {
     photoPreview.style.display = 'block';
     photoPlaceholder.style.display = 'none';
     btnRemovePhoto.style.display = 'block';
+    document.getElementById('photoActionRow').style.display = 'flex';
 }
 function clearPhotoPreview() {
     photoPreview.src = '';
     photoPreview.style.display = 'none';
     photoPlaceholder.style.display = 'flex';
     btnRemovePhoto.style.display = 'none';
+    document.getElementById('photoActionRow').style.display = 'none';
     inputPhoto.value = '';
     selectedPhotoFile = null;
+    croppedDataUrl = null;
 }
 
 inputPhoto.addEventListener('change', () => {
@@ -940,6 +1120,7 @@ function closeModal() {
     selectedPhotoFile = null;
     existingPhotoUrl  = null;
     photoWasRemoved   = false;
+    croppedDataUrl    = null;
 }
 
 // ─────────────────────────────────────────────
@@ -956,6 +1137,8 @@ async function save() {
 
     if (photoWasRemoved) {
         photoUrl = null;
+    } else if (croppedDataUrl) {
+        photoUrl = croppedDataUrl;
     } else if (selectedPhotoFile) {
         uploadProgress.classList.add('show');
         try { photoUrl = await compressPhoto(selectedPhotoFile); }
@@ -1137,6 +1320,244 @@ document.getElementById('cpOverlay').addEventListener('click', e => {
     if (e.target === document.getElementById('cpOverlay'))
         document.getElementById('cpOverlay').classList.remove('active');
 });
+
+// ─────────────────────────────────────────────
+//  LIGHTBOX
+// ─────────────────────────────────────────────
+function openLightbox(src) {
+    document.getElementById('lightboxImg').src = src;
+    document.getElementById('lightboxOverlay').classList.add('open');
+}
+function closeLightbox() {
+    document.getElementById('lightboxOverlay').classList.remove('open');
+}
+document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+document.getElementById('lightboxOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('lightboxOverlay') ||
+        e.target === document.getElementById('lightboxImg')) closeLightbox();
+});
+document.getElementById('btnPhotoView').addEventListener('click', () => {
+    if (photoPreview.src) openLightbox(photoPreview.src);
+});
+
+// ─────────────────────────────────────────────
+//  CROP TOOL
+// ─────────────────────────────────────────────
+let _cropImg   = null;
+let _cropBox   = { x: 0, y: 0, w: 1, h: 1 }; // relative coords 0..1
+let _cropDrag  = null;
+const HSIZE    = 14; // handle size px
+const MIN_CROP = 0.06;
+
+function _imgRect(canvas, img) {
+    const cw = canvas.width, ch = canvas.height;
+    const iw = img.naturalWidth, ih = img.naturalHeight;
+    const scale = Math.min(cw / iw, ch / ih);
+    const dw = iw * scale, dh = ih * scale;
+    return { x: (cw - dw) / 2, y: (ch - dh) / 2, w: dw, h: dh };
+}
+
+function _toCanvas(rel, ir) {
+    return { x: ir.x + rel.x * ir.w, y: ir.y + rel.y * ir.h,
+             w: rel.w * ir.w,         h: rel.h * ir.h };
+}
+
+function _drawCrop() {
+    const canvas = document.getElementById('cropCanvas');
+    const ctx = canvas.getContext('2d');
+    if (!_cropImg) return;
+    const ir = _imgRect(canvas, _cropImg);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Full image
+    ctx.drawImage(_cropImg, ir.x, ir.y, ir.w, ir.h);
+
+    // Dark mask outside crop
+    const cr = _toCanvas(_cropBox, ir);
+    ctx.fillStyle = 'rgba(0,0,0,0.62)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Clear crop area and redraw image inside it
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(cr.x, cr.y, cr.w, cr.h);
+    ctx.clip();
+    ctx.drawImage(_cropImg, ir.x, ir.y, ir.w, ir.h);
+    ctx.restore();
+
+    // Border
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cr.x, cr.y, cr.w, cr.h);
+
+    // Rule-of-thirds grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 1; i <= 2; i++) {
+        ctx.moveTo(cr.x + cr.w * i / 3, cr.y);
+        ctx.lineTo(cr.x + cr.w * i / 3, cr.y + cr.h);
+        ctx.moveTo(cr.x, cr.y + cr.h * i / 3);
+        ctx.lineTo(cr.x + cr.w, cr.y + cr.h * i / 3);
+    }
+    ctx.stroke();
+
+    // Corner handles
+    ctx.fillStyle = '#fff';
+    [[cr.x, cr.y], [cr.x + cr.w - HSIZE, cr.y],
+     [cr.x, cr.y + cr.h - HSIZE], [cr.x + cr.w - HSIZE, cr.y + cr.h - HSIZE]]
+        .forEach(([hx, hy]) => ctx.fillRect(hx, hy, HSIZE, HSIZE));
+}
+
+function _getHandle(px, py, canvas) {
+    if (!_cropImg) return null;
+    const ir = _imgRect(canvas, _cropImg);
+    const cr = _toCanvas(_cropBox, ir);
+    const tol = HSIZE + 8;
+    const corners = {
+        nw: [cr.x, cr.y], ne: [cr.x + cr.w - HSIZE, cr.y],
+        sw: [cr.x, cr.y + cr.h - HSIZE], se: [cr.x + cr.w - HSIZE, cr.y + cr.h - HSIZE]
+    };
+    for (const [name, [hx, hy]] of Object.entries(corners)) {
+        if (px >= hx - 6 && px <= hx + tol && py >= hy - 6 && py <= hy + tol) return name;
+    }
+    if (px >= cr.x && px <= cr.x + cr.w && py >= cr.y && py <= cr.y + cr.h) return 'move';
+    return null;
+}
+
+function _cropPos(canvas, e) {
+    const rect = canvas.getBoundingClientRect();
+    const sx = canvas.width / rect.width, sy = canvas.height / rect.height;
+    const src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - rect.left) * sx, y: (src.clientY - rect.top) * sy };
+}
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function openCropModal(src) {
+    _cropBox = { x: 0, y: 0, w: 1, h: 1 };
+    _cropDrag = null;
+    _cropImg = new Image();
+    _cropImg.onload = () => {
+        const canvas = document.getElementById('cropCanvas');
+        const maxW = Math.min(window.innerWidth - 56, 490);
+        const maxH = Math.min(window.innerHeight * 0.62, 460);
+        const scale = Math.min(maxW / _cropImg.naturalWidth, maxH / _cropImg.naturalHeight, 1);
+        canvas.width  = Math.round(_cropImg.naturalWidth  * scale);
+        canvas.height = Math.round(_cropImg.naturalHeight * scale);
+        _drawCrop();
+    };
+    _cropImg.src = src;
+    document.getElementById('cropModalOverlay').classList.add('open');
+}
+
+function closeCropModal() {
+    document.getElementById('cropModalOverlay').classList.remove('open');
+    _cropImg = null;
+}
+
+function applyCrop() {
+    if (!_cropImg) return;
+    const iw = _cropImg.naturalWidth, ih = _cropImg.naturalHeight;
+    const sx = Math.round(_cropBox.x * iw), sy = Math.round(_cropBox.y * ih);
+    const sw = Math.round(_cropBox.w * iw), sh = Math.round(_cropBox.h * ih);
+    const MAX = 900;
+    let dw = sw, dh = sh;
+    if (dw > MAX || dh > MAX) {
+        if (dw > dh) { dh = Math.round(dh * MAX / dw); dw = MAX; }
+        else          { dw = Math.round(dw * MAX / dh); dh = MAX; }
+    }
+    const out = document.createElement('canvas');
+    out.width = dw; out.height = dh;
+    out.getContext('2d').drawImage(_cropImg, sx, sy, sw, sh, 0, 0, dw, dh);
+    croppedDataUrl = out.toDataURL('image/jpeg', 0.82);
+    selectedPhotoFile = null;
+    photoWasRemoved = false;
+    showPhotoPreview(croppedDataUrl);
+    closeCropModal();
+    showSnack('✂️ התמונה נחתכה');
+}
+
+// Canvas interaction
+const _cropCanvas = document.getElementById('cropCanvas');
+
+_cropCanvas.addEventListener('mousedown', e => {
+    e.preventDefault();
+    const pos = _cropPos(_cropCanvas, e);
+    const h = _getHandle(pos.x, pos.y, _cropCanvas);
+    if (!h) return;
+    _cropDrag = { type: h, sx: pos.x, sy: pos.y, box: { ..._cropBox } };
+});
+_cropCanvas.addEventListener('mousemove', e => {
+    if (!_cropDrag) {
+        const h = _getHandle(...Object.values(_cropPos(_cropCanvas, e)), _cropCanvas);
+        _cropCanvas.style.cursor = h === 'move' ? 'grab' : h ? 'crosshair' : 'default';
+        return;
+    }
+    e.preventDefault();
+    _applyCropDrag(_cropPos(_cropCanvas, e));
+});
+_cropCanvas.addEventListener('mouseup',    () => { _cropDrag = null; });
+_cropCanvas.addEventListener('mouseleave', () => { _cropDrag = null; });
+_cropCanvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const pos = _cropPos(_cropCanvas, e);
+    const h = _getHandle(pos.x, pos.y, _cropCanvas);
+    if (!h) return;
+    _cropDrag = { type: h, sx: pos.x, sy: pos.y, box: { ..._cropBox } };
+}, { passive: false });
+_cropCanvas.addEventListener('touchmove', e => {
+    if (!_cropDrag) return;
+    e.preventDefault();
+    _applyCropDrag(_cropPos(_cropCanvas, e));
+}, { passive: false });
+_cropCanvas.addEventListener('touchend', () => { _cropDrag = null; });
+
+function _applyCropDrag(pos) {
+    if (!_cropDrag || !_cropImg) return;
+    const ir = _imgRect(_cropCanvas, _cropImg);
+    const dx = (pos.x - _cropDrag.sx) / ir.w;
+    const dy = (pos.y - _cropDrag.sy) / ir.h;
+    const sb = _cropDrag.box;
+    let { x, y, w, h } = sb;
+    switch (_cropDrag.type) {
+        case 'move':
+            x = clamp(sb.x + dx, 0, 1 - sb.w);
+            y = clamp(sb.y + dy, 0, 1 - sb.h);
+            break;
+        case 'nw':
+            x = clamp(sb.x + dx, 0, sb.x + sb.w - MIN_CROP);
+            y = clamp(sb.y + dy, 0, sb.y + sb.h - MIN_CROP);
+            w = sb.x + sb.w - x; h = sb.y + sb.h - y;
+            break;
+        case 'ne':
+            y = clamp(sb.y + dy, 0, sb.y + sb.h - MIN_CROP);
+            w = clamp(sb.w + dx, MIN_CROP, 1 - sb.x);
+            h = sb.y + sb.h - y;
+            break;
+        case 'sw':
+            x = clamp(sb.x + dx, 0, sb.x + sb.w - MIN_CROP);
+            w = sb.x + sb.w - x;
+            h = clamp(sb.h + dy, MIN_CROP, 1 - sb.y);
+            break;
+        case 'se':
+            w = clamp(sb.w + dx, MIN_CROP, 1 - sb.x);
+            h = clamp(sb.h + dy, MIN_CROP, 1 - sb.y);
+            break;
+    }
+    _cropBox = { x, y, w, h };
+    _drawCrop();
+}
+
+document.getElementById('btnCropTool').addEventListener('click', () => {
+    if (photoPreview.src) openCropModal(photoPreview.src);
+});
+document.getElementById('btnCropConfirm').addEventListener('click', applyCrop);
+document.getElementById('btnCropReset').addEventListener('click', () => {
+    _cropBox = { x: 0, y: 0, w: 1, h: 1 };
+    _drawCrop();
+});
+document.getElementById('btnCropCancel').addEventListener('click', closeCropModal);
 
 // ─────────────────────────────────────────────
 //  FIREBASE INIT
